@@ -1,0 +1,61 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+</head>
+<body>
+    <h1>Chat App</h1>
+    
+    <form id="message-form">
+        Username: <input type="text" name="sender"><br>
+        Message: <input type="text" name="content"><br>
+        <input type="submit" value="Send">
+    </form>
+
+    <h2>Messages</h2>
+    <ul id="message-list"></ul>
+
+    <script>
+        function getMessages() {
+            fetch('/get_messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messageList = document.getElementById('message-list');
+                    messageList.innerHTML = '';
+                    data.messages.forEach(message => {
+                        const li = document.createElement('li');
+                        li.textContent = `${message.sender}: ${message.content}`;
+                        messageList.appendChild(li);
+                    });
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            getMessages();
+        });
+
+        document.getElementById('message-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const sender = formData.get('sender');
+            const content = formData.get('content');
+
+            fetch('/send_message', {
+                method: 'POST',
+                body: new URLSearchParams({sender, content}),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    getMessages();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
